@@ -41,23 +41,33 @@
   Vue.component('auto-complete', {
     template:`
     <div>
-    <div class="form-group col-md-6">
-      <input type="text" placeholder="Enter Country name..." v-model="query" @keyup="getData()" autocomplete="off" class="form-control" />
+      <div class="form-group col-md-6">
+        <input type="text" placeholder="Enter Country name..." v-model="query" id="query" @keyup="getData()" autocomplete="off" class="form-control" />
+      
       </div>
       
-      <div class="form-group col-md-6">
-      <input type="text" placeholder="Cantidad"    class="form-control" />
+      <div class="form-group col-md-3">
+        <input type="number" id="cantidad" placeholder="Cantidad" v-model="v_cantidad"   name="cantidad" class="form-control" />
       </div>
+
+      <div class="form-group col-md-3">
+
+      <input type="button"   value="Adicionar" @click="adicionarLista"   class="form-control" />
+      </div>
+
+
       
       <div class="panel-footer" v-if="search_data.length">
         <ul class="list-group">
-          <a href="#" class="list-group-item" v-for="data1 in search_data" @click="getName(data1.country_name)">{{ data1.id }} - {{ data1.country_code }} - {{ data1.country_name }}</a>
+          <a href="#" class="list-group-item" v-for="data1 in search_data" @click="getName(data1)">{{ data1.id }} - {{ data1.country_code }} - {{ data1.country_name }}</a>
         </ul>
       </div>
 
-    <table v-if="lista.length">
+    <table v-if="lista.length" border =1  width ="100%">
       <tr v-for="data1 in lista">
-      <td @click="calculo(data1)"> <input type="text" name="cantidad[]" v-bind:value="data1"> {{ data1}}</td> 
+      <td> <input type="hidden" name="cantidad[]" v-bind:value="data1" > {{ data1.pais}}</td> 
+      <td><p>{{ data1.cantidad}}</p> </td>
+      <td><p v-on:click="eliminar(data1)"> X</p> </td>
       </tr>
     </table>
 
@@ -69,6 +79,9 @@
         query:'',
         search_data:[],
         lista:[],
+        selected:{pais:"",id:"", cantidad:0},
+        v_cantidad:'',
+        //isDisabled:true
 
       }
     },
@@ -79,19 +92,54 @@
           query:this.query
         }).then(response => {
           this.search_data = response.data;
+
         });
       },
-      getName:function(name){
-        this.query = name;
-        this.search_data = [];
-        this.lista.push(name);
+      getName:function(dato){
+        this.query = dato.country_name;
+        this.selected.pais = dato.country_name,
+        this.selected.id = dato.id,
+        this.search_data = [],
+       // this.isDisabled=false,
+        //$('#cantidad').focus();
+        document.getElementById('cantidad').focus() 
+        //this.lista.push(dato.country_name);
         
       },
       
-      calculo:function(name){
-        alert(name)
+      adicionarLista:function(name){
+        
+        if(this.selected.id ==='')
+        {
+          alert("tiene que selecionar un poducto");
+          document.getElementById('query').focus() ;
+          return false;
+        }
+        if(this.v_cantidad < 1 || this.v_cantidad =='')
+        {
+          alert("tiene que ingresar una cantidad");
+          document.getElementById('cantidad').focus() ;
+          return false;
+        }
+        
+
+         this.lista.push({"id":this.selected.id,"pais":this.selected.pais,"cantidad":parseInt(this.v_cantidad)});
+         this.selected.pais = "",
+         this.selected.id = "",
+         this.selected.cantidad = 0,
+
+         this.query='',
+         this.v_cantidad = ''
+        // this.isDisabled=true
+      },
+
+      eliminar:function(name){
+        
+        this.lista.splice(this.lista.indexOf(name), 1);
+        
         
       }
+
 
     }
   });
@@ -103,13 +151,4 @@
 
 
 </script>
-<div class="form-row">
-    <div class="form-group col-md-6">
-      <label for="producto">Producto *</label>
-      <input type="text" class="form-control" v-model="producto" name="producto" id="producto" placeholder="Nombre" value="">
-    </div>
-    <div class="form-group col-md-6">
-      <label for="inputPassword4">Codigo</label>
-      <input type="text" class="form-control" name="codigo_producto" id="inputPassword4" placeholder="Codigo" value="">
-    </div>
-  </div>
+ 
